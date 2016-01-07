@@ -33,8 +33,9 @@ using MonoDevelop.Ide;
 using MonoDevelop.Projects;
 using MonoDevelop.Core.Execution;
 using MonoDevelop.Core;
+using MonoDevelop.Debugger;
 
-namespace MonoDevelop.Debugger.Soft.Unity
+namespace MonoDevelop.UnityDebug
 {
 	/// <summary>
 	/// ProjectServiceExtension to allow Unity projects to be executed under the soft debugger

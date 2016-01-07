@@ -33,7 +33,7 @@ using MonoDevelop.Debugger;
 using MonoDevelop.Core.Execution;
 using Mono.Debugging.Client;
 
-namespace MonoDevelop.Debugger.Soft.Unity
+namespace MonoDevelop.UnityDebug
 {
 	public class UnitySoftDebuggerEngine: DebuggerEngineBackend
 	{

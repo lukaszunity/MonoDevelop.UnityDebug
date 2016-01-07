@@ -32,7 +32,7 @@ using Mono.Debugging.Soft;
 using Mono.Debugger.Soft;
 using Mono.Debugging.Client;
 
-namespace MonoDevelop.Debugger.Soft.Unity
+namespace MonoDevelop.UnityDebug
 {
 	/// <summary>
 	/// Debugger session for Unity scripting code
