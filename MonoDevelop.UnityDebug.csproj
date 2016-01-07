@@ -80,6 +80,8 @@
     <Compile Include="UnityProjectServiceExtension.cs" />
     <Compile Include="UnitySoftDebuggerEngine.cs" />
     <Compile Include="UnitySoftDebuggerSession.cs" />
+    <Compile Include="StandardInputOutputProtocol.cs" />
+    <Compile Include="LineReader.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

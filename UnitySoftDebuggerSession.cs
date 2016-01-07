@@ -31,6 +31,8 @@ using System;
 using Mono.Debugging.Soft;
 using Mono.Debugger.Soft;
 using Mono.Debugging.Client;
+using System.IO;
+using System.Reflection;
 
 namespace MonoDevelop.UnityDebug
 {
@@ -39,10 +41,25 @@ namespace MonoDevelop.UnityDebug
 	/// </summary>
 	public class UnitySoftDebuggerSession : SoftDebuggerSession
 	{
-		
+		StandardInputOutputProtocol unityDebugProcess;
+
 		public UnitySoftDebuggerSession ()
 		{
 			Adaptor.BusyStateChanged += (object sender, BusyStateEventArgs e) => SetBusyState (e);
+		}
+
+		public bool Start()
+		{
+			var assemblyDirectory = Path.GetDirectoryName (Assembly.GetExecutingAssembly ().Location);
+			unityDebugProcess = new StandardInputOutputProtocol ();
+			bool start =  unityDebugProcess.Start (Path.Combine (assemblyDirectory, "UnityDebug", "UnityDebug.exe"));
+
+			if (!start)
+				return false;
+
+			unityDebugProcess.WriteStandardInput ("Content-Length: 124\r\n\r\n{\"type\":\"request\",\"seq\":1,\"command\":\"initialize\",\"arguments\":{\"adapterID\":\"unity\",\"linesStartAt1\":true,\"pathFormat\":\"path\"}}");
+
+			return true;
 		}
 
 		protected override string GetConnectingMessage (DebuggerStartInfo dsi)
@@ -60,8 +77,8 @@ namespace MonoDevelop.UnityDebug
 
 		public SoftDebuggerStartInfo GetUnitySoftDebuggerStartInfo(long processId)
 		{
-//			var attachInfo = UnityProcessDiscovery.GetUnityAttachInfo (processId, ref currentConnector);
 			return null;
+//			var attachInfo = UnityProcessDiscovery.GetUnityAttachInfo (processId, ref currentConnector);
 //			return new SoftDebuggerStartInfo (new SoftDebuggerConnectArgs (attachInfo.AppName, attachInfo.Address, attachInfo.Port));
 		}
 			

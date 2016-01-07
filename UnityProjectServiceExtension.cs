@@ -128,24 +128,30 @@ namespace MonoDevelop.UnityDebug
 			
 			if (target.Id.StartsWith("Unity.Instance")) 
 			{
-				var processes = UnityDebuggerEngine.GetAttachableProcesses ();
-				var unityEngineProcesses = processes.Where (p => p.Name.Contains (target.ProcessName)).ToArray ();
+				// FIXME: Hack
+				DispatchService.GuiDispatch (delegate {
+					IdeApp.ProjectOperations.AttachToProcess (unityDebuggerEngine, new Mono.Debugging.Client.ProcessInfo(0, "Dummy")); 
+				});
+				return;
 
-				if (unityEngineProcesses.Length == 0) 
-				{
-					MessageService.ShowError (target.Name + " not found");
-					LoggingService.LogError (target.Name + " not found");
-				} 
-				else if (unityEngineProcesses.Length == 1) 
-				{
-					DispatchService.GuiDispatch (delegate {
-						IdeApp.ProjectOperations.AttachToProcess (unityDebuggerEngine, unityEngineProcesses [0]); 
-					});
-				} 
-				else 
-				{
-					ShowAttachToProcessDialog ();
-				}
+//				var processes = UnityDebuggerEngine.GetAttachableProcesses ();
+//				var unityEngineProcesses = processes.Where (p => p.Name.Contains (target.ProcessName)).ToArray ();
+//
+//				if (unityEngineProcesses.Length == 0) 
+//				{
+//					MessageService.ShowError (target.Name + " not found");
+//					LoggingService.LogError (target.Name + " not found");
+//				} 
+//				else if (unityEngineProcesses.Length == 1) 
+//				{
+//					DispatchService.GuiDispatch (delegate {
+//						IdeApp.ProjectOperations.AttachToProcess (unityDebuggerEngine, unityEngineProcesses [0]); 
+//					});
+//				} 
+//				else 
+//				{
+//					ShowAttachToProcessDialog ();
+//				}
 
 			} 
 			else if (target.Id == "Unity.AttachToProcess") 
