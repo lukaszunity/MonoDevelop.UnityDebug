@@ -8,7 +8,7 @@ namespace MonoDevelop.UnityDebug
 	{
 		Process process;
 		string processPath;
-		LineReader lineReader = new LineReader();
+		HttpHeaderReader lineReader = new HttpHeaderReader();
 
 		public bool Start(string processPath)
 		{
@@ -40,15 +40,15 @@ namespace MonoDevelop.UnityDebug
 			return true;
 		}
 
-		public event LineReader.LineHandler OnStandardInputLine
+		public event HttpHeaderReader.ContentHandler OnStandardInputLine
 		{
 			add
 			{
-				lineReader.OnLine += value;
+				lineReader.OnContent += value;
 			}
 			remove
 			{
-				lineReader.OnLine -= value;
+				lineReader.OnContent -= value;
 			}
 		}
 

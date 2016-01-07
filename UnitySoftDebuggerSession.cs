@@ -41,7 +41,7 @@ namespace MonoDevelop.UnityDebug
 	/// </summary>
 	public class UnitySoftDebuggerSession : SoftDebuggerSession
 	{
-		StandardInputOutputProtocol unityDebugProcess;
+		UnityDebugProtocol unityDebugProtocol;
 
 		public UnitySoftDebuggerSession ()
 		{
@@ -51,13 +51,12 @@ namespace MonoDevelop.UnityDebug
 		public bool Start()
 		{
 			var assemblyDirectory = Path.GetDirectoryName (Assembly.GetExecutingAssembly ().Location);
-			unityDebugProcess = new StandardInputOutputProtocol ();
-			bool start =  unityDebugProcess.Start (Path.Combine (assemblyDirectory, "UnityDebug", "UnityDebug.exe"));
+			unityDebugProtocol = new UnityDebugProtocol ();
 
-			if (!start)
+			bool initialized =  unityDebugProtocol.Initialize (Path.Combine (assemblyDirectory, "UnityDebug", "UnityDebug.exe"));
+
+			if (!initialized)
 				return false;
-
-			unityDebugProcess.WriteStandardInput ("Content-Length: 124\r\n\r\n{\"type\":\"request\",\"seq\":1,\"command\":\"initialize\",\"arguments\":{\"adapterID\":\"unity\",\"linesStartAt1\":true,\"pathFormat\":\"path\"}}");
 
 			return true;
 		}
