@@ -105,4 +105,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Manifest.addin.xml">
+      <LogicalName>Manifest.addin.xml</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
 </Project>
