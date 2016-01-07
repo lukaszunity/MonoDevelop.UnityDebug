@@ -51,7 +51,7 @@ namespace MonoDevelop.UnityDebug
 			get 
 			{
 				if (unityDebuggerEngine == null)
-					unityDebuggerEngine = DebuggingService.GetDebuggerEngines ().FirstOrDefault (e => e.Id == "MonoDevelop.Debugger.Soft.Unity");
+					unityDebuggerEngine = DebuggingService.GetDebuggerEngines ().FirstOrDefault (e => e.Id == "MonoDevelop.UnityDebug");
 
 				return unityDebuggerEngine;
 			}

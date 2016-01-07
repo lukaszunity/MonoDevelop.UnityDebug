@@ -16,14 +16,14 @@
 	
 	<Extension path="/MonoDevelop/Debugging/DebuggerEngines">
 		<DebuggerEngine
-			id="MonoDevelop.Debugger.Soft.Unity"
+			id="MonoDevelop.UnityDebug"
 			name="Unity Debugger"
 			features="Breakpoints, Pause, Stepping, DebugFile, ConditionalBreakpoints, Tracepoints, Catchpoints, Attaching"
-			type="MonoDevelop.Debugger.Soft.Unity.UnitySoftDebuggerEngine" />
+			type="MonoDevelop.UnityDebug.UnitySoftDebuggerEngine" />
 	</Extension>
 	
 	<Extension path = "/MonoDevelop/ProjectModel/ProjectServiceExtensions">
-		<Class class = "MonoDevelop.Debugger.Soft.Unity.UnityProjectServiceExtension" id="UnityProjectServiceExtension" insertafter="FinalStep"/>
+		<Class class = "MonoDevelop.UnityDebug.UnityProjectServiceExtension" id="UnityProjectServiceExtension" insertafter="FinalStep"/>
 	</Extension>
 
 </Addin>
