@@ -3,35 +3,49 @@ using OpenDebug;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Threading;
+using System.IO;
 
 namespace MonoDevelop.UnityDebug
 {
 	public class UnityDebugProtocol
 	{
 		StandardInputOutputProtocol stdInOutProtocol = new StandardInputOutputProtocol();
-		Dictionary<int, Request> queuedRequests = new Dictionary<int, Request>();
-		ManualResetEvent initializeEvent = new ManualResetEvent(false);
-		bool initialized = false;
+		Dictionary<int, ManualResetEvent> requestEvents = new Dictionary<int, ManualResetEvent>();
+		Exception requestException;
 
-		public bool Initialize(string processPath)
+		public void Initialize(string processPath)
 		{
 			if (!stdInOutProtocol.Start (processPath))
-				return false;
+				throw new FileNotFoundException (processPath);
 
 			stdInOutProtocol.OnStandardInputLine += HandleResponse;
 
 			SendRequest (new InitializeRequest ());
-			initializeEvent.WaitOne ();
+		}
 
-			return initialized;
+		public void Attach(string target)
+		{
+			SendRequest (new LaunchRequest (target));
 		}
 
 		void SendRequest(Request request)
 		{
-			queuedRequests [request.seq] = request;
+			var requestEvent = new ManualResetEvent(false);
+			requestEvents [request.seq] = requestEvent;
+
 			var jsonString = JsonConvert.SerializeObject (request);
 			var data = string.Format ("Content-Length: {0}\r\n\r\n{1}", jsonString.Length, jsonString);
 			stdInOutProtocol.WriteStandardInput (data);
+
+			// Wait for response
+			requestEvent.WaitOne();
+
+			if (requestException != null) 
+			{
+				var e = requestException;
+				requestException = null;
+				throw e;
+			}	
 		}
 
 		void HandleResponse(string response)
@@ -40,7 +54,7 @@ namespace MonoDevelop.UnityDebug
 
 			if (message.type == "event")
 				HandleEvent (JsonConvert.DeserializeObject<V8Event> (response));
-			else if(message.type == "request")
+			else if(message.type == "response")
 				HandleReponse (JsonConvert.DeserializeObject<V8Response> (response));
 		}
 
@@ -49,15 +63,20 @@ namespace MonoDevelop.UnityDebug
 			switch (@event.eventType) 
 			{
 				case "initialized":
-					initializeEvent.Set ();
 				break;
 			}
 
 		}
 
-		void HandleReponse(V8Response request)
+		void HandleReponse(V8Response response)
 		{
+			if (response.success == false)
+				requestException = new BadRequest (response.message);
 
+			// Signal that a response has been processsed
+			var requestEvent = requestEvents [response.request_seq];
+			requestEvents.Remove (response.request_seq);
+			requestEvent.Set ();
 		}
 	}
 }

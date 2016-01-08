@@ -57,9 +57,7 @@ namespace MonoDevelop.UnityDebug
 		public override DebuggerSession CreateSession ()
 		{
 			session = new UnitySoftDebuggerSession ();
-
-			if (!session.Start ())
-				return null;
+			session.Initialize ();
 
 			session.TargetExited += delegate{ session = null; };
 			return session;

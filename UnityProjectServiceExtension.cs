@@ -40,11 +40,13 @@ namespace MonoDevelop.UnityDebug
 	/// <summary>
 	/// ProjectServiceExtension to allow Unity projects to be executed under the soft debugger
 	/// </summary>
-	public class UnityProjectServiceExtension: ProjectServiceExtension
+	public class UnityProjectServiceExtension : ProjectServiceExtension
 	{
 		internal static string EditLayout = "Solution";
 		private DebuggerEngine unityDebuggerEngine = null;
 		UnityExecutionCommand executionCommand = new UnityExecutionCommand();
+
+		static  List<ExecutionTarget> executionTargets = new List<ExecutionTarget> ();
 
 		DebuggerEngine UnityDebuggerEngine
 		{
@@ -57,12 +59,46 @@ namespace MonoDevelop.UnityDebug
 			}
 		}
 
+		static UnityProjectServiceExtension()
+		{
+			executionTargets.Add (new UnityExecutionTarget ("Unity Editor", "Unity.Instance", "Unity Editor", executionTargets.Count));
+
+			if (Platform.IsMac) 
+			{
+				executionTargets.Add (new UnityExecutionTarget ("OSX Player", "Unity.Instance", "OSXPlayer", executionTargets.Count));
+				executionTargets.Add (new UnityExecutionTarget ("OSX WebPlayer", "Unity.Instance", "OSXWebPlayer", executionTargets.Count));
+			}
+
+			if (Platform.IsWindows) 
+			{
+				executionTargets.Add (new UnityExecutionTarget ("Windows Player", "Unity.Instance", "WindowsPlayer", executionTargets.Count));
+				executionTargets.Add (new UnityExecutionTarget ("Windows WebPlayer", "Unity.Instance", "WindowsWebPlayer", executionTargets.Count));
+			}
+
+			if (Platform.IsLinux) 
+			{
+				executionTargets.Add (new UnityExecutionTarget ("Linux Player", "Unity.Instance", "LinuxPlayer", executionTargets.Count));
+				executionTargets.Add (new UnityExecutionTarget ("Linux WebPlayer", "Unity.Instance", "LinuxWebPlayer", executionTargets.Count));
+			}
+
+			executionTargets.Add (new UnityExecutionTarget ("iOS Player", "Unity.Instance", "iPhonePlayer", executionTargets.Count));
+
+			executionTargets.Add (new UnityExecutionTarget ("Android Player", "Unity.Instance", "AndroidPlayer", executionTargets.Count));
+
+			executionTargets.Add (new UnityExecutionTarget ("Attach To Process", "Unity.AttachToProcess", null, executionTargets.Count));
+		}
+
 		public UnityProjectServiceExtension()
 		{
 			MonoDevelop.Ide.IdeApp.FocusIn += delegate {
 				if(UnityDebuggerEngine != null)
 					UnityDebuggerEngine.GetAttachableProcesses();
 			};
+		}
+
+		public static IEnumerable<ExecutionTarget> ExecutionTargets
+		{
+			get { return executionTargets; }
 		}
 
 		/// <summary>
@@ -128,31 +164,9 @@ namespace MonoDevelop.UnityDebug
 			
 			if (target.Id.StartsWith("Unity.Instance")) 
 			{
-				// FIXME: Hack
 				DispatchService.GuiDispatch (delegate {
-					IdeApp.ProjectOperations.AttachToProcess (unityDebuggerEngine, new Mono.Debugging.Client.ProcessInfo(0, "Dummy")); 
+					IdeApp.ProjectOperations.AttachToProcess (unityDebuggerEngine, new Mono.Debugging.Client.ProcessInfo(target.Index, target.Name)); 
 				});
-				return;
-
-//				var processes = UnityDebuggerEngine.GetAttachableProcesses ();
-//				var unityEngineProcesses = processes.Where (p => p.Name.Contains (target.ProcessName)).ToArray ();
-//
-//				if (unityEngineProcesses.Length == 0) 
-//				{
-//					MessageService.ShowError (target.Name + " not found");
-//					LoggingService.LogError (target.Name + " not found");
-//				} 
-//				else if (unityEngineProcesses.Length == 1) 
-//				{
-//					DispatchService.GuiDispatch (delegate {
-//						IdeApp.ProjectOperations.AttachToProcess (unityDebuggerEngine, unityEngineProcesses [0]); 
-//					});
-//				} 
-//				else 
-//				{
-//					ShowAttachToProcessDialog ();
-//				}
-
 			} 
 			else if (target.Id == "Unity.AttachToProcess") 
 			{
@@ -171,53 +185,25 @@ namespace MonoDevelop.UnityDebug
 			string name;
 			string id;
 			string processName;
+			int index;
 
-			public UnityExecutionTarget(string name, string id, string processName)
+			public UnityExecutionTarget(string name, string id, string processName, int index)
 			{
 				this.name = name;
 				this.id = id + (processName == null ? "" : "." + processName);
 				this.processName = processName;
+				this.index = index;
 			}
 
 			public override string Name { get { return name; } }
 			public override string Id { get { return id; } }
 			public string ProcessName { get { return processName; } }
+			public int Index { get { return index; } }
 		}
 
 		protected override IEnumerable<ExecutionTarget> GetExecutionTargets (SolutionEntityItem item, ConfigurationSelector configuration)
 		{
-			var list = new List<ExecutionTarget> ();
-
-			if (CanExecuteProject (item as Project)) 
-			{
-				list.Add (new UnityExecutionTarget ("Unity Editor", "Unity.Instance", "Unity Editor"));
-
-				if (Platform.IsMac) 
-				{
-					list.Add (new UnityExecutionTarget ("OSX Player", "Unity.Instance", "OSXPlayer"));
-					list.Add (new UnityExecutionTarget ("OSX WebPlayer", "Unity.Instance", "OSXWebPlayer"));
-				}
-
-				if (Platform.IsWindows) 
-				{
-					list.Add (new UnityExecutionTarget ("Windows Player", "Unity.Instance", "WindowsPlayer"));
-					list.Add (new UnityExecutionTarget ("Windows WebPlayer", "Unity.Instance", "WindowsWebPlayer"));
-				}
-
-				if (Platform.IsLinux) 
-				{
-					list.Add (new UnityExecutionTarget ("Linux Player", "Unity.Instance", "LinuxPlayer"));
-					list.Add (new UnityExecutionTarget ("Linux WebPlayer", "Unity.Instance", "LinuxWebPlayer"));
-				}
-
-				list.Add (new UnityExecutionTarget ("iOS Player", "Unity.Instance", "iPhonePlayer"));
-
-				list.Add (new UnityExecutionTarget ("Android Player", "Unity.Instance", "AndroidPlayer"));
-
-				list.Add (new UnityExecutionTarget ("Attach To Process", "Unity.AttachToProcess", null));
-
-			}
-			return list;
+			return ExecutionTargets;
 		}
 		
 		public override bool GetNeedsBuilding (IBuildTarget item, ConfigurationSelector configuration)

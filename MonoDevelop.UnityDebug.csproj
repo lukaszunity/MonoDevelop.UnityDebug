@@ -42,18 +42,6 @@
       <HintPath>..\monodevelop\main\build\bin\MonoDevelop.Ide.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Mono.Debugger.Soft">
-      <HintPath>..\monodevelop\main\build\AddIns\MonoDevelop.Debugger.Soft\Mono.Debugger.Soft.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Mono.Debugging.Soft">
-      <HintPath>..\monodevelop\main\build\AddIns\MonoDevelop.Debugger.Soft\Mono.Debugging.Soft.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="MonoDevelop.Debugger.Soft">
-      <HintPath>..\monodevelop\main\build\AddIns\MonoDevelop.Debugger.Soft\MonoDevelop.Debugger.Soft.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="Mono.Debugging">
       <HintPath>..\monodevelop\main\build\bin\Mono.Debugging.dll</HintPath>
       <Private>False</Private>
@@ -91,6 +79,7 @@
     <Compile Include="Requests.cs" />
     <Compile Include="HttpHeaderReader.cs" />
     <Compile Include="Events.cs" />
+    <Compile Include="Exceptions.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

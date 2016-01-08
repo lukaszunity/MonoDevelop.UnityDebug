@@ -41,5 +41,29 @@ namespace OpenDebug
 			pathFormat = "path";
 		}
 	}
+
+	public class LaunchRequest : Request
+	{
+		public LaunchRequestArguments arguments;
+
+		public LaunchRequest(string name) : base("launch")
+		{
+			arguments = new LaunchRequestArguments (name);
+		}
+	}
+
+	public class LaunchRequestArguments
+	{
+		public string name;
+		public string type;
+		public string request;
+
+		public LaunchRequestArguments(string name)
+		{
+			this.name = name;
+			type = "unity";
+			request = "attach";
+		}
+	}
 }
 
