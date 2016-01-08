@@ -30,6 +30,8 @@ namespace MonoDevelop.UnityDebug
 			var targets = UnityProjectServiceExtension.ExecutionTargets.ToArray ();
 			var processTarget = targets [processIndex];
 			unityDebugProtocol.Attach (processTarget.Name);
+
+			OnStarted ();
 		}
 
 		protected override void OnDetach ()
@@ -84,7 +86,14 @@ namespace MonoDevelop.UnityDebug
 
 		protected override BreakEventInfo OnInsertBreakEvent (BreakEvent breakEvent)
 		{
-			throw new NotImplementedException ();
+			var bp = breakEvent as Breakpoint;
+
+			if(bp == null)
+				throw new NotImplementedException ();
+
+			unityDebugProtocol.AddBreakpoint (bp.FileName, bp.Line);
+
+			return new BreakEventInfo ();
 		}
 
 		protected override void OnRemoveBreakEvent (BreakEventInfo eventInfo)

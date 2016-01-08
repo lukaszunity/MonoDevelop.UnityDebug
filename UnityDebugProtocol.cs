@@ -13,6 +13,8 @@ namespace MonoDevelop.UnityDebug
 		Dictionary<int, ManualResetEvent> requestEvents = new Dictionary<int, ManualResetEvent>();
 		Exception requestException;
 
+		Dictionary<string, List<int>> fileBreakpoints = new Dictionary<string, List<int>> ();
+
 		public void Initialize(string processPath)
 		{
 			if (!stdInOutProtocol.Start (processPath))
@@ -26,6 +28,22 @@ namespace MonoDevelop.UnityDebug
 		public void Attach(string target)
 		{
 			SendRequest (new LaunchRequest (target));
+		}
+
+		public void AddBreakpoint(string filePath, int line)
+		{
+			List<int> lines;
+
+			if (!fileBreakpoints.ContainsKey (filePath)) {
+				lines = new List<int> ();
+				fileBreakpoints [filePath] = lines;
+			} else
+				lines = fileBreakpoints [filePath];
+
+			if (!lines.Contains (line))
+				lines.Add (line);
+
+			SendRequest (new SetBreakpointsRequest (filePath, lines.ToArray()));
 		}
 
 		void SendRequest(Request request)
@@ -62,10 +80,17 @@ namespace MonoDevelop.UnityDebug
 		{
 			switch (@event.eventType) 
 			{
-				case "initialized":
+			case "initialized":
+				break;
+			case "output":
+				break;
+			case "thread":
+				break;
+
+			default:
+				requestException = new BadRequest ("Unhandled event '" + @event.eventType + "'");
 				break;
 			}
-
 		}
 
 		void HandleReponse(V8Response response)

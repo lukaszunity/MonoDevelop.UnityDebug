@@ -28,7 +28,7 @@ namespace MonoDevelop.UnityDebug
 
 			var match = ContentLengthMatcher.Match (data);
 
-			if (match.Success) 
+			while (match.Success) 
 			{
 				int contentLength = Int32.Parse(match.Groups [1].Value);
 				int requestIndex = data.IndexOf ("\r\n\r\n") + 4;
@@ -41,6 +41,8 @@ namespace MonoDevelop.UnityDebug
 					if (contentEvent != null)
 						contentEvent (content);
 				}
+
+				match = ContentLengthMatcher.Match (data);
 			}
 		}
 	}

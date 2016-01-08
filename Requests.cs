@@ -65,5 +65,32 @@ namespace OpenDebug
 			request = "attach";
 		}
 	}
+
+	public class SetBreakpointsRequest : Request
+	{
+		public SetBreakpointsRequestArguments arguments;
+
+		public SetBreakpointsRequest(string path, int[] lines) : base("setBreakpoints")
+		{
+			arguments = new SetBreakpointsRequestArguments (path, lines);
+		}
+	}
+
+	public class BreakpointSource
+	{
+		public string path;
+	}
+
+	public class SetBreakpointsRequestArguments
+	{
+		public BreakpointSource source;
+		public int[] lines;
+
+		public SetBreakpointsRequestArguments(string path, int[] lines)
+		{
+			source = new BreakpointSource { path = path };
+			this.lines = lines;
+		}
+	}
 }
 
