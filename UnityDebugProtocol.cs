@@ -4,6 +4,8 @@ using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Threading;
 using System.IO;
+using Mono.Debugging.Client;
+using Newtonsoft.Json.Linq;
 
 namespace MonoDevelop.UnityDebug
 {
@@ -15,12 +17,19 @@ namespace MonoDevelop.UnityDebug
 
 		Dictionary<string, List<int>> fileBreakpoints = new Dictionary<string, List<int>> ();
 
+		public delegate void ThreadEventHandler(int threadId);
+		public event ThreadEventHandler ThreadStarted;
+		public event ThreadEventHandler ThreadExited;
+
+		public delegate void BreakpointEventHandler(string path, int line);
+		public event BreakpointEventHandler BreakpointHit;
+
 		public void Initialize(string processPath)
 		{
 			if (!stdInOutProtocol.Start (processPath))
 				throw new FileNotFoundException (processPath);
 
-			stdInOutProtocol.OnStandardInputLine += HandleResponse;
+			stdInOutProtocol.OnStandardInputLine += HandleResult;
 
 			SendRequest (new InitializeRequest ());
 		}
@@ -53,6 +62,9 @@ namespace MonoDevelop.UnityDebug
 
 			var jsonString = JsonConvert.SerializeObject (request);
 			var data = string.Format ("Content-Length: {0}\r\n\r\n{1}", jsonString.Length, jsonString);
+
+			DebuggerLoggingService.LogMessage ("Request: {0}", jsonString);
+
 			stdInOutProtocol.WriteStandardInput (data);
 
 			// Wait for response
@@ -66,18 +78,22 @@ namespace MonoDevelop.UnityDebug
 			}	
 		}
 
-		void HandleResponse(string response)
+		void HandleResult(string result)
 		{
-			var message = JsonConvert.DeserializeObject<V8Message> (response);
+			DebuggerLoggingService.LogMessage ("Result: {0}", result);
+
+			var message = JsonConvert.DeserializeObject<V8Message> (result);
 
 			if (message.type == "event")
-				HandleEvent (JsonConvert.DeserializeObject<V8Event> (response));
+				HandleEvent (JsonConvert.DeserializeObject<V8Event> (result));
 			else if(message.type == "response")
-				HandleReponse (JsonConvert.DeserializeObject<V8Response> (response));
+				HandleReponse (JsonConvert.DeserializeObject<V8Response> (result));
 		}
 
 		void HandleEvent(V8Event @event)
 		{
+			var body = @event.body as JObject;
+
 			switch (@event.eventType) 
 			{
 			case "initialized":
@@ -85,6 +101,26 @@ namespace MonoDevelop.UnityDebug
 			case "output":
 				break;
 			case "thread":
+				var threadEvent = body.ToObject<ThreadEvent> ();
+				var threadId = threadEvent.threadId;
+
+				if (threadEvent.reason == "started" && ThreadStarted != null)
+					ThreadStarted (threadEvent.threadId);
+				
+				if (threadEvent.reason == "exited" && ThreadExited != null)
+					ThreadExited (threadEvent.threadId);
+
+			break;
+
+			case "stopped":
+				var stoppedEvent = body.ToObject<StoppedEvent> ();
+
+				if (stoppedEvent.reason == "breakpoint")
+				{
+					if (BreakpointHit != null)
+						BreakpointHit (stoppedEvent.source.path, stoppedEvent.line);
+				}
+
 				break;
 
 			default:

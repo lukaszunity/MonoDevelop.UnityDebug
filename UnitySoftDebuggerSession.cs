@@ -15,9 +15,37 @@ namespace MonoDevelop.UnityDebug
 
 		public void Initialize()
 		{
+			unityDebugProtocol.ThreadStarted += ThreadStarted;
+			unityDebugProtocol.ThreadExited += ThreadExited;
+			unityDebugProtocol.BreakpointHit += BreakpointHit;
+
 			var assemblyDirectory = Path.GetDirectoryName (Assembly.GetExecutingAssembly ().Location);
 			var unityDebugPath = Path.Combine (assemblyDirectory, "UnityDebug", "UnityDebug.exe");
 			unityDebugProtocol.Initialize (unityDebugPath);
+		}
+
+		void BreakpointHit(string path, int line)
+		{
+			foreach (var bp in Breakpoints.GetBreakpoints())
+			{
+				if(bp.FileName == path && bp.Line == line)
+				{
+					var args = new TargetEventArgs (TargetEventType.TargetHitBreakpoint);
+					args.BreakEvent = bp;
+					OnTargetEvent (args);
+					break;
+				}
+			}
+		}
+
+		void ThreadStarted(int threadId)
+		{
+
+		}
+
+		void ThreadExited(int threadId)
+		{
+
 		}
 
 		protected override void OnRun (DebuggerStartInfo startInfo)
@@ -93,7 +121,9 @@ namespace MonoDevelop.UnityDebug
 
 			unityDebugProtocol.AddBreakpoint (bp.FileName, bp.Line);
 
-			return new BreakEventInfo ();
+			var eventInfo =  new BreakEventInfo ();
+			eventInfo.SetStatus (BreakEventStatus.Bound, null);
+			return eventInfo;
 		}
 
 		protected override void OnRemoveBreakEvent (BreakEventInfo eventInfo)

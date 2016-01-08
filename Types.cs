@@ -83,6 +83,11 @@ namespace OpenDebug
 		public string path { get; set; }
 		public int sourceReference { get; set; }
 
+		public Source()
+		{
+
+		}
+
 		public Source(string nm, string pth, int rf = 0) {
 			name = nm;
 			path = pth;
